@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Plamedi Card</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Librairies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 { color: #333; }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      width: 320px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #reader {
+      width: 100%;
+      margin-top: 10px;
+    }
+    #qrcode {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Plamedi Card</h1>
+
+  <div class="container">
+    <!-- Générer QR Code -->
+    <div class="card">
+      <h2>Générer un QR Code</h2>
+      <input type="text" id="nom" placeholder="Nom">
+      <select id="groupe">
+        <option value="">Groupe sanguin</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+      </select>
+      <input type="text" id="infos" placeholder="Infos médicales">
+      <input type="password" id="motdepasse" placeholder="Code pour chiffrer (PIN)">
+      <button onclick="generateQRCode()">Générer le QR Code</button>
+      <div id="qrcode"></div>
+    </div>
+
+    <!-- Scanner QR Code -->
+    <div class="card">
+      <h2>Scanner un QR Code</h2>
+      <input type="password" id="dechiffreMotdepasse" placeholder="Code pour déchiffrer (PIN)">
+      <button onclick="startScanner()">Scanner et Déchiffrer</button>
+      <div id="reader"></div>
+      <p id="resultat"></p>
+    </div>
+  </div>
+
+<script>
+  function encrypt(text, pin) {
+    return CryptoJS.AES.encrypt(text, pin).toString();
+  }
+
+  function decrypt(ciphertext, pin) {
+    try {
+      const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return decrypted || "Mot de passe incorrect ou données corrompues.";
+    } catch (e) {
+      return "Erreur de déchiffrement.";
+    }
+  }
+
+  function generateQRCode() {
+    let nom = document.getElementById('nom').value;
+    let groupe = document.getElementById('groupe').value;
+    let infos = document.getElementById('infos').value;
+    let pin = document.getElementById('motdepasse').value;
+
+    if (!nom || !groupe || !infos || !pin) {
+      alert("Remplissez tous les champs !");
+      return;
+    }
+
+    let texte = `Nom: ${nom}\nGroupe: ${groupe}\nInfos: ${infos}`;
+    let encrypted = encrypt(texte, pin);
+
+    document.getElementById('qrcode').innerHTML = "";
+    new QRCode(document.getElementById('qrcode'), encrypted);
+  }
+
+  function startScanner() {
+    let pin = document.getElementById('dechiffreMotdepasse').value;
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: 250 };
+
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeMessage => {
+        let result = decrypt(qrCodeMessage, pin);
+        document.getElementById('resultat').innerText = result;
+        html5QrCode.stop();
+      },
+      errorMessage => {
+        // console.log(errorMessage);
+      }
+    );
+  }
+</script>
+
+</body>
+</html>

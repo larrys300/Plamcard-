@@ -2,39 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Plamedi Card</title>
+  <title>PlamCard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <!-- Librairies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
       margin: 0;
       padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: linear-gradient(135deg, #e0f7e9, #ccf2e0);
+      min-height: 100vh;
     }
-    h1 { color: #333; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #28a745;
+    }
+    .slogan {
+      font-size: 16px;
+      color: #555;
+      font-style: italic;
+    }
     .container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 30px;
-      margin-top: 20px;
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
     }
     .card {
       background: white;
       border-radius: 16px;
       padding: 25px;
-      width: 320px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      flex: 1 1 350px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     input, select, button {
       width: 100%;
@@ -45,14 +64,15 @@
       font-size: 14px;
     }
     button {
-      background-color: #007bff;
+      background-color: #28a745;
       color: white;
       font-weight: bold;
       cursor: pointer;
       border: none;
+      transition: background-color 0.3s;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #218838;
     }
     #reader {
       width: 100%;
@@ -61,17 +81,38 @@
     #qrcode {
       margin-top: 15px;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #28a745;
+      color: white;
+    }
+    .result-card {
+      margin-top: 20px;
+    }
   </style>
 </head>
 
 <body>
-  <h1>head carte </h1>
+  <header>
+    <div class="logo">PlamCard</div>
+    <div class="slogan">Votre sécurité, notre priorité</div>
+  </header>
 
   <div class="container">
     <!-- Générer QR Code -->
     <div class="card">
-      <h2>Générer un QR Code</h2>
+      <h2>Créer votre QR Code</h2>
       <input type="text" id="nom" placeholder="Nom">
+      <input type="number" id="age" placeholder="Âge">
       <select id="groupe">
         <option value="">Groupe sanguin</option>
         <option value="A+">A+</option>
@@ -84,7 +125,8 @@
         <option value="O-">O-</option>
       </select>
       <input type="text" id="infos" placeholder="Infos médicales">
-      <input type="password" id="motdepasse" placeholder="Code pour chiffrer (PIN)">
+      <input type="text" id="contact" placeholder="Personne à contacter">
+      <input type="password" id="motdepasse" placeholder="Code secret (PIN)">
       <button onclick="generateQRCode()">Générer le QR Code</button>
       <div id="qrcode"></div>
     </div>
@@ -92,11 +134,26 @@
     <!-- Scanner QR Code -->
     <div class="card">
       <h2>Scanner un QR Code</h2>
-      <input type="password" id="dechiffreMotdepasse" placeholder="Code pour déchiffrer (PIN)">
-      <button onclick="startScanner()">Scanner et Déchiffrer</button>
+      <input type="password" id="dechiffreMotdepasse" placeholder="Code secret (PIN)">
+      <button onclick="startScanner()">Scanner</button>
       <div id="reader"></div>
-      <p id="resultat"></p>
     </div>
+  </div>
+
+  <!-- Résultats -->
+  <div class="card result-card">
+    <h2>Résultat du scan</h2>
+    <table id="resultTable" style="display: none;">
+      <tbody>
+        <tr><th>Nom</th><td id="resNom"></td></tr>
+        <tr><th>Âge</th><td id="resAge"></td></tr>
+        <tr><th>Groupe sanguin</th><td id="resGroupe"></td></tr>
+        <tr><th>Infos médicales</th><td id="resInfos"></td></tr>
+        <tr><th>Personne à contacter</th><td id="resContact"></td></tr>
+      </tbody>
+    </table>
+    <button id="exportBtn" style="display:none;" onclick="exportPDF()">Exporter en PDF</button>
+    <p id="errorMsg" style="color: red;"></p>
   </div>
 
 <script>
@@ -108,32 +165,44 @@
     try {
       const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
       const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-      return decrypted || "Mot de passe incorrect ou données corrompues.";
+      return decrypted || null;
     } catch (e) {
-      return "Erreur de déchiffrement.";
+      return null;
     }
   }
 
   function generateQRCode() {
     let nom = document.getElementById('nom').value;
+    let age = document.getElementById('age').value;
     let groupe = document.getElementById('groupe').value;
     let infos = document.getElementById('infos').value;
+    let contact = document.getElementById('contact').value;
     let pin = document.getElementById('motdepasse').value;
 
-    if (!nom || !groupe || !infos || !pin) {
+    if (!nom || !age || !groupe || !infos || !contact || !pin) {
       alert("Remplissez tous les champs !");
       return;
     }
 
-    let texte = `Nom: ${nom}\nGroupe: ${groupe}\nInfos: ${infos}`;
+    let texte = `Nom:${nom};Âge:${age};Groupe:${groupe};Infos:${infos};Contact:${contact}`;
     let encrypted = encrypt(texte, pin);
 
     document.getElementById('qrcode').innerHTML = "";
-    new QRCode(document.getElementById('qrcode'), encrypted);
+    new QRCode(document.getElementById('qrcode'), {
+      text: encrypted,
+      width: 220,
+      height: 220,
+      correctLevel: QRCode.CorrectLevel.H
+    });
   }
 
   function startScanner() {
     let pin = document.getElementById('dechiffreMotdepasse').value;
+    if (!pin) {
+      alert("Entrez d'abord votre code secret !");
+      return;
+    }
+
     const html5QrCode = new Html5Qrcode("reader");
     const config = { fps: 10, qrbox: 250 };
 
@@ -141,14 +210,54 @@
       { facingMode: "environment" },
       config,
       qrCodeMessage => {
-        let result = decrypt(qrCodeMessage, pin);
-        document.getElementById('resultat').innerText = result;
-        html5QrCode.stop();
+        const decrypted = decrypt(qrCodeMessage, pin);
+        if (decrypted) {
+          afficherResultats(decrypted);
+          html5QrCode.stop();
+        } else {
+          document.getElementById('errorMsg').innerText = "Erreur : Mot de passe incorrect ou QR Code invalide.";
+          html5QrCode.stop();
+        }
       },
       errorMessage => {
-        // console.log(errorMessage);
+        // console.log("Erreur de scan: " + errorMessage);
       }
     );
+  }
+
+  function afficherResultats(text) {
+    let parts = {};
+    text.split(';').forEach(item => {
+      const [key, value] = item.split(':');
+      parts[key.trim()] = value.trim();
+    });
+
+    document.getElementById('resNom').innerText = parts.Nom || "";
+    document.getElementById('resAge').innerText = parts.Ãge || parts.Ãge || "";
+    document.getElementById('resGroupe').innerText = parts.Groupe || "";
+    document.getElementById('resInfos').innerText = parts.Infos || "";
+    document.getElementById('resContact').innerText = parts.Contact || "";
+
+    document.getElementById('resultTable').style.display = "table";
+    document.getElementById('exportBtn').style.display = "block";
+    document.getElementById('errorMsg').innerText = "";
+  }
+
+  function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Résultats PlamCard", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Nom: ${document.getElementById('resNom').innerText}`, 20, 40);
+    doc.text(`Âge: ${document.getElementById('resAge').innerText}`, 20, 50);
+    doc.text(`Groupe sanguin: ${document.getElementById('resGroupe').innerText}`, 20, 60);
+    doc.text(`Infos médicales: ${document.getElementById('resInfos').innerText}`, 20, 70);
+    doc.text(`Personne à contacter: ${document.getElementById('resContact').innerText}`, 20, 80);
+
+    doc.save('PlamCard_Resultats.pdf');
   }
 </script>
 

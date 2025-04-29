@@ -207,45 +207,48 @@
     );
   }
 
-  function afficherResultats(text) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const logoUrl = '/mnt/data/file-23BJ9Px3RGpQL1PtiD4Sb3';
+function afficherResultats(text) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-    const champs = [
-      'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
-      'Allergies', 'Traitements', 'Antécédents', 'Médecin',
-      'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
-    ];
-    const valeurs = text.split('|');
-    const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
-    const date = new Date().toLocaleDateString('fr-FR');
+  const champs = [
+    'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
+    'Allergies', 'Traitements', 'Antécédents', 'Médecin',
+    'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
+  ];
+  const valeurs = text.split('|');
+  const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
+  const date = new Date().toLocaleDateString('fr-FR');
 
-    const img = new Image();
-    img.src = logoUrl;
-    img.onload = function () {
-      doc.setFillColor(29, 185, 84);
-      doc.rect(0, 0, 210, 25, 'F');
-      doc.addImage(img, 'PNG', 10, 5, 30, 15);
-      doc.setTextColor(255);
-      doc.setFontSize(16);
-      doc.text("PlamCard - Fiche Médicale", 105, 15, null, null, 'center');
+  // En-tête
+  doc.setFillColor(29, 185, 84);
+  doc.rect(0, 0, 210, 25, 'F');
+  doc.setTextColor(255);
+  doc.setFontSize(16);
+  doc.text("PlamCard - Fiche Médicale", 105, 15, null, null, 'center');
 
-      doc.setTextColor(0);
-      doc.setFontSize(12);
-      let y = 40;
-      champs.forEach((label, i) => {
-        doc.text(`${label} : ${valeurs[i] || 'NC'}`, 20, y);
-        y += 10;
-      });
+  // Bordure
+  doc.setDrawColor(100);
+  doc.rect(10, 30, 190, 240);
 
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Généré le ${date}`, 150, 280);
+  // Texte centré
+  doc.setTextColor(0);
+  doc.setFontSize(12);
+  let y = 45;
+  champs.forEach((label, i) => {
+    const ligne = `${label} : ${valeurs[i] || 'NC'}`;
+    doc.text(ligne, 105, y, null, null, 'center');
+    y += 10;
+  });
 
-      dernierPDF = { doc, nom, date };
-      document.getElementById("downloadBtn").style.display = "block";
-    };
+  // Pied de page
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Généré le ${date}`, 105, 270, null, null, 'center');
+
+  dernierPDF = { doc, nom, date };
+  document.getElementById("downloadBtn").style.display = "block";
+  
   }
 
   function telechargerPDF() {

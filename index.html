@@ -1,20 +1,18 @@
-        <!DOCTYPE html>
-<html lang="fr">
+        <!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8">
   <title>PlamCard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Librairies -->
+  <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #e0f7e9, #ccf2e0);
+      background-color:#eaf7f0;
+      color: #000;
       margin: 0;
       padding: 20px;
     }
@@ -27,11 +25,11 @@
     .logo {
       font-size: 28px;
       font-weight: bold;
-      color: #28a745;
+      color: #1db954;
     }
     .slogan {
       font-size: 16px;
-      color: #555;
+      color: black;
       font-style: italic;
     }
     .container {
@@ -41,49 +39,52 @@
       justify-content: center;
     }
     .card {
-      background: #fff;
+      background: #ffff;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       padding: 20px;
       width: 350px;
+      box-sizing: border-box;
     }
     input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #1db954; /* Vert clair Spotify */
-  font-size: 14px;
-  background-color: #121212; /* Fond sombre typique Spotify */
-  color: white;
-  transition: background-color 0.3s, color 0.3s, border 0.3s;
+      width: 100%;
+      max-width: 100%;
+      margin: 6px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      background-color: #c6f3d9;
+      color: #000;
+      box-sizing: border-box;
     }
     button {
-      background-color: #28a745;
+      background-color:#1db954;
       color: white;
       font-weight: bold;
-      border: none;
       cursor: pointer;
     }
     button:hover {
-      background-color: #218838;
+      background-color:#eaf7f0;
     }
     #qrcode, #reader {
       margin-top: 10px;
     }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #777;
+    }
   </style>
 </head>
 <body>
-
   <header>
     <div class="logo">PlamCard</div>
     <div class="slogan">Votre santé, en un scan</div>
   </header>
-
   <div class="container">
-    <!-- QR Code Generator -->
     <div class="card">
-      <h3>Créer QR Code</h3>
+      <h3>Créer votre QR Code</h3>
       <input id="nom" placeholder="Nom">
       <input id="age" placeholder="Âge" type="number">
       <select id="groupe">
@@ -106,11 +107,9 @@
       </select>
       <input id="langues" placeholder="Langues parlées">
       <input id="motdepasse" placeholder="Code PIN" type="password">
-      <button onclick="generateQRCode()">Générer</button>
+      <button onclick="generateQRCode()">Générer le QR Code</button>
       <div id="qrcode"></div>
     </div>
-
-    <!-- QR Code Scanner -->
     <div class="card">
       <h3>Scanner un QR Code</h3>
       <input id="dechiffreMotdepasse" placeholder="Code PIN" type="password">
@@ -118,93 +117,109 @@
       <div id="reader"></div>
     </div>
   </div>
-
+  <footer>
+    Tout droit réservé à PlamCard © 2025 | Conçu pour vous | Contact : support@plamcard.com
+  </footer>
   <script>
-    function encrypt(text, pin) {
-      return CryptoJS.AES.encrypt(text, pin).toString();
-    }
+    function compress(text) {
+      return btoa(unescape(encodeURIComponent(text)));
+    }function decompress(text) {
+  return decodeURIComponent(escape(atob(text)));
+}
 
-    function decrypt(ciphertext, pin) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
-        return bytes.toString(CryptoJS.enc.Utf8);
-      } catch {
-        return null;
+function encrypt(text, pin) {
+  return CryptoJS.AES.encrypt(text, pin).toString();
+}
+
+function decrypt(ciphertext, pin) {
+  try {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  } catch {
+    return null;
+  }
+}
+
+function generateQRCode() {
+  const champs = [
+    'nom', 'age', 'groupe', 'infos', 'contact',
+    'allergies', 'traitements', 'antecedents', 'medecin',
+    'dispositif', 'vaccins', 'don', 'langues'
+  ];
+
+  let pin = document.getElementById('motdepasse').value;
+  if (!pin) return alert("Code PIN requis.");
+
+  let valeurs = champs.map(id => document.getElementById(id).value || "NC");
+  let compactData = compress(valeurs.join('|'));
+  let encrypted = encrypt(compactData, pin);
+
+  document.getElementById('qrcode').innerHTML = "";
+  new QRCode(document.getElementById('qrcode'), {
+    text: encrypted,
+    width: 220,
+    height: 220,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+function startScanner() {
+  let pin = document.getElementById('dechiffreMotdepasse').value;
+  if (!pin) return alert("Entrez le code PIN.");
+
+  const html5QrCode = new Html5Qrcode("reader");
+  const config = { fps: 10, qrbox: 250 };
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    message => {
+      const decrypted = decrypt(message, pin);
+      if (decrypted) {
+        afficherResultats(decompress(decrypted));
+        html5QrCode.stop();
+      } else {
+        alert("QR Code invalide ou PIN incorrect.");
+        html5QrCode.stop();
       }
-    }
+    },
+    err => {}
+  );
+}
 
-    function generateQRCode() {
-      const champs = [
-        'nom', 'age', 'groupe', 'infos', 'contact',
-        'allergies', 'traitements', 'antecedents', 'medecin',
-        'dispositif', 'vaccins', 'don', 'langues'
-      ];
+function afficherResultats(text) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      let pin = document.getElementById('motdepasse').value;
-      if (!pin) return alert("Code PIN requis.");
+  const champs = [
+    'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
+    'Allergies', 'Traitements', 'Antécédents', 'Médecin',
+    'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
+  ];
+  const valeurs = text.split('|');
 
-      let valeurs = champs.map(id => document.getElementById(id).value || "NC");
-      let compactData = valeurs.join('|');
-      let encrypted = encrypt(compactData, pin);
+  doc.setFontSize(18);
+  doc.text("Fiche Médicale - PlamCard", 20, 20);
+  doc.setFontSize(12);
 
-      document.getElementById('qrcode').innerHTML = "";
-      new QRCode(document.getElementById('qrcode'), {
-        text: encrypted,
-        width: 220,
-        height: 220,
-        correctLevel: QRCode.CorrectLevel.H
-      });
-    }
+  let y = 40;
+  champs.forEach((label, i) => {
+    doc.text(`${label} : ${valeurs[i] || 'NC'}`, 20, y);
+    y += 10;
+  });
 
-    function startScanner() {
-      let pin = document.getElementById('dechiffreMotdepasse').value;
-      if (!pin) return alert("Entrez le code PIN.");
+  const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
+  const date = new Date().toISOString().split('T')[0];
+  doc.text(`Date : ${date}`, 20, y + 10);
 
-      const html5QrCode = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: 250 };
+  const img = new Image();
+  img.src = "favicon.png";
+  img.onload = function() {
+    doc.addImage(img, 'PNG', 150, 10, 40, 20);
+    doc.save(`PlamCard_${nom}_${date}.pdf`);
+  };
+}
 
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        message => {
-          const decrypted = decrypt(message, pin);
-          if (decrypted) {
-            afficherResultats(decrypted);
-            html5QrCode.stop();
-          } else {
-            alert("QR Code invalide ou PIN incorrect.");
-            html5QrCode.stop();
-          }
-        },
-        err => {}
-      );
-    }
-
-    function afficherResultats(text) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      const champs = [
-        'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
-        'Allergies', 'Traitements', 'Antécédents', 'Médecin',
-        'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
-      ];
-      const valeurs = text.split('|');
-
-      doc.setFontSize(18);
-      doc.text("Fiche Médicale - PlamCard", 20, 20);
-      doc.setFontSize(12);
-
-      let y = 40;
-      champs.forEach((label, i) => {
-        doc.text(`${label} : ${valeurs[i] || 'NC'}`, 20, y);
-        y += 10;
-      });
-
-      const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
-      const date = new Date().toISOString().split('T')[0];
-      doc.save(`PlamCard_${nom}_${date}.pdf`);
-    }
   </script>
 </body>
-</html>
+        </html>

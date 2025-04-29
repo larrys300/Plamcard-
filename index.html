@@ -123,111 +123,137 @@
   </div>
   <footer>Tout droit réservé à PlamCard © 2025</footer>
 
-  <script>
-    let dernierPDF = null;
+<script>
+  let dernierPDF = null;
+  let html5QrCode = null;
 
-    function encrypt(text, pin) {
-      return CryptoJS.AES.encrypt(text, pin).toString();
+  function encrypt(text, pin) {
+    return CryptoJS.AES.encrypt(text, pin).toString();
+  }
+
+  function decrypt(ciphertext, pin) {
+    try {
+      const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
+      return bytes.toString(CryptoJS.enc.Utf8);
+    } catch {
+      return null;
     }
+  }
 
-    function decrypt(ciphertext, pin) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
-        return bytes.toString(CryptoJS.enc.Utf8);
-      } catch {
-        return null;
-      }
-    }
+  function generateQRCode() {
+    const champs = ['nom', 'age', 'groupe', 'infos', 'contact','allergies', 'traitements', 'antecedents', 'medecin','dispositif', 'vaccins', 'don', 'langues'];
+    let pin = document.getElementById('motdepasse').value;
+    if (!pin) return alert("Code PIN requis.");
 
-    function generateQRCode() {
-      const champs = ['nom', 'age', 'groupe', 'infos', 'contact','allergies', 'traitements', 'antecedents', 'medecin','dispositif', 'vaccins', 'don', 'langues'];
-      let pin = document.getElementById('motdepasse').value;
-      if (!pin) return alert("Code PIN requis.");
+    let valeurs = champs.map(id => document.getElementById(id).value || "NC");
+    let compactData = valeurs.join('|');
+    let encrypted = encrypt(compactData, pin);
 
-      let valeurs = champs.map(id => document.getElementById(id).value || "NC");
-      let compactData = valeurs.join('|');
-      let encrypted = encrypt(compactData, pin);
+    document.getElementById('qrcode').innerHTML = "";
+    new QRCode(document.getElementById('qrcode'), {
+      text: encrypted,
+      width: 220,
+      height: 220,
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
 
-      document.getElementById('qrcode').innerHTML = "";
-      new QRCode(document.getElementById('qrcode'), {
-        text: encrypted,
-        width: 220,
-        height: 220,
-        correctLevel: QRCode.CorrectLevel.H
+  function startScanner() {
+    let pin = document.getElementById('dechiffreMotdepasse').value;
+    if (!pin) return alert("Entrez le code PIN.");
+
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        html5QrCode.clear();
+        html5QrCode = null;
+        demarrerScan(pin);
+      }).catch(err => {
+        console.error("Erreur d'arrêt du scanner :", err);
+        demarrerScan(pin);
       });
+    } else {
+      demarrerScan(pin);
     }
+  }
 
-    function startScanner() {
-      let pin = document.getElementById('dechiffreMotdepasse').value;
-      if (!pin) return alert("Entrez le code PIN.");
+  function demarrerScan(pin) {
+    html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: 250 };
 
-      const html5QrCode = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: 250 };
-
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        message => {
-          const decrypted = decrypt(message, pin);
-          if (decrypted) {
-            html5QrCode.stop();
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      message => {
+        const decrypted = decrypt(message, pin);
+        if (decrypted) {
+          html5QrCode.stop().then(() => {
+            html5QrCode.clear();
+            html5QrCode = null;
             afficherResultats(decrypted);
-          } else {
-            alert("QR Code invalide ou PIN incorrect.");
-            html5QrCode.stop();
-          }
-        },
-        err => {}
-      );
-    }
-
-    function afficherResultats(text) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const logoUrl = '/mnt/data/file-23BJ9Px3RGpQL1PtiD4Sb3';
-
-      const champs = [
-        'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
-        'Allergies', 'Traitements', 'Antécédents', 'Médecin',
-        'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
-      ];
-      const valeurs = text.split('|');
-      const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
-      const date = new Date().toLocaleDateString('fr-FR');
-
-      const img = new Image();
-      img.src = logoUrl;
-      img.onload = function () {
-        doc.setFillColor(29, 185, 84);
-        doc.rect(0, 0, 210, 25, 'F');
-        doc.addImage(img, 'PNG', 10, 5, 30, 15);
-        doc.setTextColor(255);
-        doc.setFontSize(16);
-        doc.text("PlamCard - Fiche Médicale", 105, 15, null, null, 'center');
-
-        doc.setTextColor(0);
-        doc.setFontSize(12);
-        let y = 40;
-        champs.forEach((label, i) => {
-          doc.text(`${label} : ${valeurs[i] || 'NC'}`, 20, y);
-          y += 10;
-        });
-
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Généré le ${date}`, 150, 280);
-
-        dernierPDF = { doc, nom, date };
-        document.getElementById("downloadBtn").style.display = "block";
-      };
-    }
-
-    function telechargerPDF() {
-      if (dernierPDF) {
-        const { doc, nom, date } = dernierPDF;
-        doc.save(`PlamCard_${nom}_${date}.pdf`);
+          }).catch(err => {
+            console.error("Erreur à l'arrêt :", err);
+          });
+        } else {
+          alert("QR Code invalide ou PIN incorrect.");
+          html5QrCode.stop().then(() => {
+            html5QrCode.clear();
+            html5QrCode = null;
+          });
+        }
+      },
+      err => {
+        // Silencieux pour éviter le spam
       }
+    );
+  }
+
+  function afficherResultats(text) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const logoUrl = '/mnt/data/file-23BJ9Px3RGpQL1PtiD4Sb3';
+
+    const champs = [
+      'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
+      'Allergies', 'Traitements', 'Antécédents', 'Médecin',
+      'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
+    ];
+    const valeurs = text.split('|');
+    const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
+    const date = new Date().toLocaleDateString('fr-FR');
+
+    const img = new Image();
+    img.src = logoUrl;
+    img.onload = function () {
+      doc.setFillColor(29, 185, 84);
+      doc.rect(0, 0, 210, 25, 'F');
+      doc.addImage(img, 'PNG', 10, 5, 30, 15);
+      doc.setTextColor(255);
+      doc.setFontSize(16);
+      doc.text("PlamCard - Fiche Médicale", 105, 15, null, null, 'center');
+
+      doc.setTextColor(0);
+      doc.setFontSize(12);
+      let y = 40;
+      champs.forEach((label, i) => {
+        doc.text(`${label} : ${valeurs[i] || 'NC'}`, 20, y);
+        y += 10;
+      });
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Généré le ${date}`, 150, 280);
+
+      dernierPDF = { doc, nom, date };
+      document.getElementById("downloadBtn").style.display = "block";
+    };
+  }
+
+  function telechargerPDF() {
+    if (dernierPDF) {
+      const { doc, nom, date } = dernierPDF;
+      doc.save(`PlamCard_${nom}_${date}.pdf`);
     }
-  </script>
+  }
+        </script>
 </body>
   </html>

@@ -118,6 +118,9 @@
   <button id="downloadBtn" style="display:none; margin-top: 15px; background-color:#1db954; color:white; font-weight:bold; border:none; border-radius:6px; padding:10px 20px; cursor:pointer;" onclick="telechargerPDF()">
     Télécharger le PDF
   </button>
+      <button id="downloadPdfBtn" style="display:none; margin-top: 15px; background-color:#1db954; color:white; font-weight:bold; border:none; border-radius:6px; padding:10px 20px; cursor:pointer;" onclick="telechargerPDF()">
+  Télécharger le PDF
+      </button>
 </div>
 
   </div>
@@ -155,7 +158,10 @@ function generateQRCode() {
     height: 220,
     correctLevel: QRCode.CorrectLevel.H
   });
-}
+
+  // Afficher le bouton de téléchargement du PDF
+  document.getElementById("downloadPdfBtn").style.display = "block";
+    
 
 function startScanner() {
   let pin = document.getElementById('dechiffreMotdepasse').value;

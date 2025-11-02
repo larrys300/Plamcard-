@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTS FX - Calculateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS : Style du Calculateur */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f0c29;
+            background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            width: 100%;
+            max-width: 400px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        .header .app-logo { /* Nouveau style pour le logo LTS FX */
+            font-size: 50px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #8A2BE2, #C71585); /* Dégradé */
+            -webkit-background-clip: text; /* Pour que le dégradé s'applique au texte */
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent; /* Fallback for browsers that don't support -webkit-text-fill-color */
+        }
+        .header .back-arrow, .header .menu-dots {
+            font-size: 24px;
+            font-weight: bold;
+            color: #a9a9a9;
+            text-decoration: none;
+        }
+
+        .form-container {
+            padding: 0 20px 20px 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #a9a9a9;
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            background: #2a2a4e;
+            border: 1px solid #3a3a5e;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            appearance: none;
+        }
+        .form-group input::placeholder {
+            color: #6a6a8e;
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 12px;
+        }
+
+        #calculateBtn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            background: linear-gradient(90deg, #8A2BE2, #C71585);
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+        #calculateBtn:active {
+            transform: scale(0.98);
+        }
+
+        .results-container {
+            background: #161625;
+            padding: 20px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item span {
+            color: #a9a9a9;
+        }
+        .result-item strong {
+            color: #d1c4e9;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer {text-align:center;padding:15px;font-size:13px;color:var(--muted)}
+.social {display:flex;justify-content:center;gap:12px;margin-top:5px}
+.social a img{width:22px;height:22px}
+@media (max-width:480px){.logo{font-size:36px}}
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            align-items: center; /* Centrer verticalement les icônes */
+        }
+        .social-icons svg { /* Style des icônes SVG */
+            width: 24px;
+            height: 24px;
+            fill: #a9a9a9; /* Couleur des icônes */
+            transition: fill 0.2s ease;
+        }
+        .social-icons svg:hover {
+            fill: #ffffff; /* Couleur au survol */
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .calculator-container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <header class="header">
+            <a href="#" class="back-arrow">←</a>
+            <h1 class="app-logo">LTS FX</h1> <div class="menu-dots">⋮</div>
+        </header>
+
+        <main class="form-container">
+            <div class="form-group">
+                <label for="assetType">Type d'actif</label>
+                <select id="assetType">
+                    <option value="gold">Gold (XAU/USD)</option>
+                    <option value="forex">Forex (Paires de Devises)</option>
+                    <option value="indices">Indices Boursiers (Ex: US30, DE40)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tradeType">Type d'ordre</label>
+                <select id="tradeType">
+                    <option value="buy">Achat (Buy)</option>
+                    <option value="sell">Vente (Sell)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="entryPrice">Prix d'entrée</label>
+                <input type="number" id="entryPrice" placeholder="Ex: 2000.00 (Gold) / 1.08500 (EUR/USD) / 38500 (US30)" step="any">
+            </div>
+
+            <div class="form-group">
+                <label for="lotSize">Lot</label>
+                <input type="number" id="lotSize" placeholder="Ex: 0.01 / 0.10 / 1.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="riskAmount">Risque ($)</label>
+                <input type="number" id="riskAmount" placeholder="Ex: 5, 10, 50" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="targetAmount">Gain visé ($)</label>
+                <input type="number" id="targetAmount" placeholder="Ex: 10, 20, 100" step="0.01">
+            </div>
+
+            <button id="calculateBtn">Calculer</button>
+        </main>
+
+        <section class="results-container">
+            <div class="result-item">
+                <span>Lot utilisé</span>
+                <strong id="lotResult">0.00</strong>
+            </div>
+            <div class="result-item">
+                <span>Stop Loss (prix)</span>
+                <strong id="stopLossResult">0.00</strong>
+            </div>
+            <div class="result-item">
+                <span>Take Profit (prix)</span>
+                <strong id="takeProfitResult">0.00</strong>
+            </div>
+        </section>
+
+        <footer class="footer">
+             <div>Suivez-nous: @lts_FX</div>
+    <div class="social">
+      <a href="https://instagram.com/lts_FX" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram"></a>
+      <a href="https://tiktok.com/@lts_FX" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/3046/3046120.png" alt="TikTok"></a>
+    </div>
+           
+        </footer>
+    </div>
+
+    <script>
+        // JavaScript : Logique du Calculateur
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // Sélectionne les éléments du DOM
+            const assetType = document.getElementById("assetType");
+            const tradeType = document.getElementById("tradeType");
+            const entryPrice = document.getElementById("entryPrice");
+            const lotSize = document.getElementById("lotSize");
+            const riskAmount = document.getElementById("riskAmount");
+            const targetAmount = document.getElementById("targetAmount");
+            const calculateBtn = document.getElementById("calculateBtn");
+
+            const lotResult = document.getElementById("lotResult");
+            const stopLossResult = document.getElementById("stopLossResult");
+            const takeProfitResult = document.getElementById("takeProfitResult");
+
+            // Fonction pour le calcul
+            calculateBtn.addEventListener("click", function() {
+                
+                // Récupère les valeurs et les convertit en nombres
+                const asset = assetType.value;
+                const type = tradeType.value;
+                const entry = parseFloat(entryPrice.value);
+                const lot = parseFloat(lotSize.value);
+                const risk = parseFloat(riskAmount.value);
+                const target = parseFloat(targetAmount.value);
+
+                // Vérification des entrées
+                if (isNaN(entry) || isNaN(lot) || isNaN(risk) || isNaN(target) || lot <= 0 || risk <= 0 || target <= 0) {
+                    alert("Veuillez remplir tous les champs avec des valeurs numériques positives.");
+                    return;
+                }
+
+                let stopLossPrice = 0;
+                let takeProfitPrice = 0;
+                let decimals = 2; // Par défaut
+
+                if (asset === 'gold') {
+                    // Logique pour l'Or (XAU/USD)
+                    // 0.01 lot de Gold = 1 once. Chaque mouvement de 1$ = 1$.
+                    // Valeur par point ($) pour un lot de 0.01 = 1$.
+                    // Donc, pour un lot 'x', la valeur par mouvement de 1$ est 'x' * 100.
+                    const valuePerDollarMovement = lot * 100; // Combien vous gagnez/perdez pour un mouvement de 1$ du prix
+
+                    const slDistance = risk / valuePerDollarMovement;
+                    const tpDistance = target / valuePerDollarMovement;
+
+                    if (type === 'buy') {
+                        stopLossPrice = entry - slDistance;
+                        takeProfitPrice = entry + tpDistance;
+                    } else { // Sell
+                        stopLossPrice = entry + slDistance;
+                        takeProfitPrice = entry - tpDistance;
+                    }
+                    decimals = 2; // Prix de l'or généralement à 2 décimales
+
+                } else if (asset === 'forex') {
+                    // Logique pour le Forex (Paires de devises)
+                    // La valeur d'un pip varie. Pour la plupart des paires avec USD comme devise de cotation,
+                    // 0.01 lot = 0.10$ par pip. 1 lot = 10$ par pip.
+                    const valuePerPip = lot * 10; 
+                    
+                    // Déterminer la taille du pip en fonction des décimales du prix d'entrée
+                    // Ex: 1.08500 -> 5 décimales -> pip = 0.0001
+                    // Ex: 150.00 -> 2 décimales -> pip = 0.01 (pour les paires JPY)
+                    const entryPriceStr = entryPrice.value.toString();
+                    const decimalPlaces = (entryPriceStr.split('.')[1] || '').length;
+                    const pipSize = (decimalPlaces === 2) ? 0.01 : 0.0001; // Gère JPY vs autres
+
+                    const slDistanceInPips = risk / valuePerPip;
+                    const tpDistanceInPips = target / valuePerPip;
+
+                    if (type === 'buy') {
+                        stopLossPrice = entry - (slDistanceInPips * pipSize);
+                        takeProfitPrice = entry + (tpDistanceInPips * pipSize);
+                    } else { // Sell
+                        stopLossPrice = entry + (slDistanceInPips * pipSize);
+                        takeProfitPrice = entry - (tpDistanceInPips * pipSize);
+                    }
+                    decimals = decimalPlaces; // Garde les mêmes décimales que l'entrée
+
+                } else if (asset === 'indices') {
+                    // Logique pour les Indices Boursiers (CFD)
+                    // La "valeur par point" varie énormément selon l'indice et le courtier.
+                    // Ici, nous utilisons des valeurs TYPIQUES pour 1 lot standard (1.00):
+                    // US30 (Dow Jones): 1$ par point pour 1 lot
+                    // DE40 (DAX): 1€ par point pour 1 lot (si votre compte est en USD, 1€ ~ 1.08$)
+                    // US500 (S&P 500): 10-50$ par point pour 1 lot (souvent 1$ par "mini-lot" de 0.10)
+                    // NASDAQ (US100): 1-20$ par point pour 1 lot (souvent 1$ par "mini-lot" de 0.10)
+
+                    // *** ATTENTION: CES VALEURS DOIVENT ÊTRE VÉRIFIÉES CHEZ VOTRE COURTIER ! ***
+                    // Pour simplifier, nous allons supposer une valeur par point de 1$ pour 1.00 lot comme base pour le calculateur.
+                    // Cela signifie 0.01$ par point pour 0.01 lot.
+                    const valuePerPointForStandardLot = 1; // 1$ par point pour 1 lot (exemple pour certains indices comme le DE40 chez certains brokers)
+                    const actualValuePerPoint = lot * valuePerPointForStandardLot;
+
+                    const slDistance = risk / actualValuePerPoint;
+                    const tpDistance = target / actualValuePerPoint;
+                    
+                    if (type === 'buy') {
+                        stopLossPrice = entry - slDistance;
+                        takeProfitPrice = entry + tpDistance;
+                    } else { // Sell
+                        stopLossPrice = entry + slDistance;
+                        takeProfitPrice = entry - tpDistance;
+                    }
+                    decimals = 2; // Les indices ont généralement 1 ou 2 décimales
+
+                    // Un avertissement pour l'utilisateur
+                    if (lot === 0.01 && actualValuePerPoint === 0.01) {
+                         alert("Attention: Pour les Indices, la 'valeur par point' varie ÉNORMÉMENT selon l'indice et le courtier. Ce calculateur suppose 1$ par point pour 1 lot standard, ce qui signifie 0.01$ par point pour un lot de 0.01. Vérifiez IMPÉRATIVEMENT les spécifications de votre courtier pour l'indice tradé !");
+                    }
+                }
+
+                // Met à jour l'affichage des résultats
+                lotResult.innerText = lot.toFixed(2);
+                stopLossResult.innerText = stopLossPrice.toFixed(decimals);
+                takeProfitResult.innerText = takeProfitPrice.toFixed(decimals);
+            });
+        });
+    </script>
+</body>
+</html>

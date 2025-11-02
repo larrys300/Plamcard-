@@ -1,262 +1,365 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>PlamCard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #eaf7f0;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    .logo {
-      font-size: 28px;
-      font-weight: bold;
-      color: #1db954;
-    }
-    .slogan {
-      font-size: 16px;
-      color: black;
-      font-style: italic;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      padding: 20px;
-      width: 350px;
-      box-sizing: border-box;
-    }
-    .card h3 {
-      color: #1db954;
-    }
-    input, select, button {
-      width: 100%;
-      margin: 6px 0;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
-      background-color: #c9f7d8;
-      color: #333;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #1db954;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #148e3d;
-    }
-    #qrcode, #reader {
-      margin-top: 10px;
-    }
-    footer {
-      margin-top: 40px;
-      text-align: center;
-      color: #777;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTS FX - Calculateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS : Style du Calculateur */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f0c29;
+            background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            width: 100%;
+            max-width: 400px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        .header .app-logo { /* Nouveau style pour le logo LTS FX */
+            font-size: 50px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #8A2BE2, #C71585); /* Dégradé */
+            -webkit-background-clip: text; /* Pour que le dégradé s'applique au texte */
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent; /* Fallback for browsers that don't support -webkit-text-fill-color */
+        }
+        .header .back-arrow, .header .menu-dots {
+            font-size: 24px;
+            font-weight: bold;
+            color: #a9a9a9;
+            text-decoration: none;
+        }
+
+        .form-container {
+            padding: 0 20px 20px 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #a9a9a9;
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            background: #2a2a4e;
+            border: 1px solid #3a3a5e;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            appearance: none;
+        }
+        .form-group input::placeholder {
+            color: #6a6a8e;
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5H7z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 12px;
+        }
+
+        #calculateBtn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            background: linear-gradient(90deg, #8A2BE2, #C71585);
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+        #calculateBtn:active {
+            transform: scale(0.98);
+        }
+
+        .results-container {
+            background: #161625;
+            padding: 20px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item span {
+            color: #a9a9a9;
+        }
+        .result-item strong {
+            color: #d1c4e9;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer {text-align:center;padding:15px;font-size:13px;color:var(--muted)}
+.social {display:flex;justify-content:center;gap:12px;margin-top:5px}
+.social a img{width:22px;height:22px}
+@media (max-width:480px){.logo{font-size:36px}}
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            align-items: center; /* Centrer verticalement les icônes */
+        }
+        .social-icons svg { /* Style des icônes SVG */
+            width: 24px;
+            height: 24px;
+            fill: #a9a9a9; /* Couleur des icônes */
+            transition: fill 0.2s ease;
+        }
+        .social-icons svg:hover {
+            fill: #ffffff; /* Couleur au survol */
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .calculator-container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="logo">PlamCard</div>
-    <div class="slogan">Votre santé, en un scan</div>
-  </header>
-  <div class="container">
-    <div class="card">
-      <h3>Formulaire d'inscription</h3>
-      <input id="nom" placeholder="Nom" />
-      <input id="age" placeholder="Âge" type="number" />
-      <select id="groupe">
-        <option value="">Groupe sanguin</option>
-        <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-        <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-      </select>
-      <input id="infos" placeholder="Infos médicales" />
-      <input id="contact" placeholder="Personne à contacter" />
-      <input id="allergies" placeholder="Allergies" />
-      <input id="traitements" placeholder="Traitements" />
-      <input id="antecedents" placeholder="Antécédents médicaux" />
-      <input id="medecin" placeholder="Médecin traitant" />
-      <input id="dispositif" placeholder="Dispositif médical" />
-      <input id="vaccins" placeholder="Vaccins" />
-      <select id="don">
-        <option value="">Don d’organes</option>
-        <option>Oui</option><option>Non</option>
-      </select>
-      <input id="langues" placeholder="Langues parlées" />
-      <input id="motdepasse" placeholder="Code PIN" type="password" />
-      <button onclick="generateQRCode()">Générer QR Code</button>
-      <div id="qrcode"></div>
+
+    <div class="calculator-container">
+        <header class="header">
+            <a href="#" class="back-arrow">←</a>
+            <h1 class="app-logo">LTS FX</h1> <div class="menu-dots">⋮</div>
+        </header>
+
+        <main class="form-container">
+            <div class="form-group">
+                <label for="assetType">Type d'actif</label>
+                <select id="assetType">
+                    <option value="gold">Gold (XAU/USD)</option>
+                    <option value="forex">Forex (Paires de Devises)</option>
+                    <option value="indices">Indices Boursiers (Ex: US30, DE40)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tradeType">Type d'ordre</label>
+                <select id="tradeType">
+                    <option value="buy">Achat (Buy)</option>
+                    <option value="sell">Vente (Sell)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="entryPrice">Prix d'entrée</label>
+                <input type="number" id="entryPrice" placeholder="Ex: 2000.00 (Gold) / 1.08500 (EUR/USD) / 38500 (US30)" step="any">
+            </div>
+
+            <div class="form-group">
+                <label for="lotSize">Lot</label>
+                <input type="number" id="lotSize" placeholder="Ex: 0.01 / 0.10 / 1.00" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="riskAmount">Risque ($)</label>
+                <input type="number" id="riskAmount" placeholder="Ex: 5, 10, 50" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="targetAmount">Gain visé ($)</label>
+                <input type="number" id="targetAmount" placeholder="Ex: 10, 20, 100" step="0.01">
+            </div>
+
+            <button id="calculateBtn">Calculer</button>
+        </main>
+
+        <section class="results-container">
+            <div class="result-item">
+                <span>Lot utilisé</span>
+                <strong id="lotResult">0.00</strong>
+            </div>
+            <div class="result-item">
+                <span>Stop Loss (prix)</span>
+                <strong id="stopLossResult">0.00</strong>
+            </div>
+            <div class="result-item">
+                <span>Take Profit (prix)</span>
+                <strong id="takeProfitResult">0.00</strong>
+            </div>
+        </section>
+
+        <footer class="footer">
+             <div>Suivez-nous: @lts_FX</div>
+    <div class="social">
+      <a href="https://instagram.com/lts_FX" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram"></a>
+      <a href="https://tiktok.com/@lts_FX" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/3046/3046120.png" alt="TikTok"></a>
+    </div>
+           
+        </footer>
     </div>
 
-    <div class="card">
-      <h3>Scanner un QR Code</h3>
-      <input id="dechiffreMotdepasse" placeholder="Code PIN" type="password" />
-      <button onclick="startScanner()">Scanner</button>
-      <div id="reader"></div>
-      <button id="downloadBtn" style="display:none; margin-top: 15px;" onclick="telechargerPDF()">Télécharger le PDF</button>
-    </div>
-  </div>
-  <footer>Tout droit réservé à PlamCard © 2025</footer>
+    <script>
+        // JavaScript : Logique du Calculateur
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // Sélectionne les éléments du DOM
+            const assetType = document.getElementById("assetType");
+            const tradeType = document.getElementById("tradeType");
+            const entryPrice = document.getElementById("entryPrice");
+            const lotSize = document.getElementById("lotSize");
+            const riskAmount = document.getElementById("riskAmount");
+            const targetAmount = document.getElementById("targetAmount");
+            const calculateBtn = document.getElementById("calculateBtn");
 
-<script>
-  let dernierPDF = null;
-  let html5QrCode = null;
+            const lotResult = document.getElementById("lotResult");
+            const stopLossResult = document.getElementById("stopLossResult");
+            const takeProfitResult = document.getElementById("takeProfitResult");
 
-  function encrypt(text, pin) {
-    return CryptoJS.AES.encrypt(text, pin).toString();
-  }
+            // Fonction pour le calcul
+            calculateBtn.addEventListener("click", function() {
+                
+                // Récupère les valeurs et les convertit en nombres
+                const asset = assetType.value;
+                const type = tradeType.value;
+                const entry = parseFloat(entryPrice.value);
+                const lot = parseFloat(lotSize.value);
+                const risk = parseFloat(riskAmount.value);
+                const target = parseFloat(targetAmount.value);
 
-  function decrypt(ciphertext, pin) {
-    try {
-      const bytes = CryptoJS.AES.decrypt(ciphertext, pin);
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch {
-      return null;
-    }
-  }
+                // Vérification des entrées
+                if (isNaN(entry) || isNaN(lot) || isNaN(risk) || isNaN(target) || lot <= 0 || risk <= 0 || target <= 0) {
+                    alert("Veuillez remplir tous les champs avec des valeurs numériques positives.");
+                    return;
+                }
 
-  function generateQRCode() {
-    const champs = ['nom', 'age', 'groupe', 'infos', 'contact','allergies', 'traitements', 'antecedents', 'medecin','dispositif', 'vaccins', 'don', 'langues'];
-    let pin = document.getElementById('motdepasse').value;
-    if (!pin) return alert("Code PIN requis.");
+                let stopLossPrice = 0;
+                let takeProfitPrice = 0;
+                let decimals = 2; // Par défaut
 
-    let valeurs = champs.map(id => document.getElementById(id).value || "NC");
-    let compactData = valeurs.join('|');
-    let encrypted = encrypt(compactData, pin);
+                if (asset === 'gold') {
+                    // Logique pour l'Or (XAU/USD)
+                    // 0.01 lot de Gold = 1 once. Chaque mouvement de 1$ = 1$.
+                    // Valeur par point ($) pour un lot de 0.01 = 1$.
+                    // Donc, pour un lot 'x', la valeur par mouvement de 1$ est 'x' * 100.
+                    const valuePerDollarMovement = lot * 100; // Combien vous gagnez/perdez pour un mouvement de 1$ du prix
 
-    document.getElementById('qrcode').innerHTML = "";
-    new QRCode(document.getElementById('qrcode'), {
-      text: encrypted,
-      width: 220,
-      height: 220,
-      correctLevel: QRCode.CorrectLevel.H
-    });
-  }
+                    const slDistance = risk / valuePerDollarMovement;
+                    const tpDistance = target / valuePerDollarMovement;
 
-  function startScanner() {
-    let pin = document.getElementById('dechiffreMotdepasse').value;
-    if (!pin) return alert("Entrez le code PIN.");
+                    if (type === 'buy') {
+                        stopLossPrice = entry - slDistance;
+                        takeProfitPrice = entry + tpDistance;
+                    } else { // Sell
+                        stopLossPrice = entry + slDistance;
+                        takeProfitPrice = entry - tpDistance;
+                    }
+                    decimals = 2; // Prix de l'or généralement à 2 décimales
 
-    if (html5QrCode) {
-      html5QrCode.stop().then(() => {
-        html5QrCode.clear();
-        html5QrCode = null;
-        demarrerScan(pin);
-      }).catch(err => {
-        console.error("Erreur d'arrêt du scanner :", err);
-        demarrerScan(pin);
-      });
-    } else {
-      demarrerScan(pin);
-    }
-  }
+                } else if (asset === 'forex') {
+                    // Logique pour le Forex (Paires de devises)
+                    // La valeur d'un pip varie. Pour la plupart des paires avec USD comme devise de cotation,
+                    // 0.01 lot = 0.10$ par pip. 1 lot = 10$ par pip.
+                    const valuePerPip = lot * 10; 
+                    
+                    // Déterminer la taille du pip en fonction des décimales du prix d'entrée
+                    // Ex: 1.08500 -> 5 décimales -> pip = 0.0001
+                    // Ex: 150.00 -> 2 décimales -> pip = 0.01 (pour les paires JPY)
+                    const entryPriceStr = entryPrice.value.toString();
+                    const decimalPlaces = (entryPriceStr.split('.')[1] || '').length;
+                    const pipSize = (decimalPlaces === 2) ? 0.01 : 0.0001; // Gère JPY vs autres
 
-  function demarrerScan(pin) {
-    html5QrCode = new Html5Qrcode("reader");
-    const config = { fps: 10, qrbox: 250 };
+                    const slDistanceInPips = risk / valuePerPip;
+                    const tpDistanceInPips = target / valuePerPip;
 
-    html5QrCode.start(
-      { facingMode: "environment" },
-      config,
-      message => {
-        const decrypted = decrypt(message, pin);
-        if (decrypted) {
-          html5QrCode.stop().then(() => {
-            html5QrCode.clear();
-            html5QrCode = null;
-            afficherResultats(decrypted);
-          }).catch(err => {
-            console.error("Erreur à l'arrêt :", err);
-          });
-        } else {
-          alert("QR Code invalide ou PIN incorrect.");
-          html5QrCode.stop().then(() => {
-            html5QrCode.clear();
-            html5QrCode = null;
-          });
-        }
-      },
-      err => {
-        // Silencieux pour éviter le spam
-      }
-    );
-  }
+                    if (type === 'buy') {
+                        stopLossPrice = entry - (slDistanceInPips * pipSize);
+                        takeProfitPrice = entry + (tpDistanceInPips * pipSize);
+                    } else { // Sell
+                        stopLossPrice = entry + (slDistanceInPips * pipSize);
+                        takeProfitPrice = entry - (tpDistanceInPips * pipSize);
+                    }
+                    decimals = decimalPlaces; // Garde les mêmes décimales que l'entrée
 
-function afficherResultats(text) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+                } else if (asset === 'indices') {
+                    // Logique pour les Indices Boursiers (CFD)
+                    // La "valeur par point" varie énormément selon l'indice et le courtier.
+                    // Ici, nous utilisons des valeurs TYPIQUES pour 1 lot standard (1.00):
+                    // US30 (Dow Jones): 1$ par point pour 1 lot
+                    // DE40 (DAX): 1€ par point pour 1 lot (si votre compte est en USD, 1€ ~ 1.08$)
+                    // US500 (S&P 500): 10-50$ par point pour 1 lot (souvent 1$ par "mini-lot" de 0.10)
+                    // NASDAQ (US100): 1-20$ par point pour 1 lot (souvent 1$ par "mini-lot" de 0.10)
 
-  const champs = [
-    'Nom', 'Âge', 'Groupe sanguin', 'Infos médicales', 'Contact',
-    'Allergies', 'Traitements', 'Antécédents', 'Médecin',
-    'Dispositif médical', 'Vaccins', 'Don d’organes', 'Langues parlées'
-  ];
-  const valeurs = text.split('|');
-  const nom = (valeurs[0] || 'SansNom').replace(/\s+/g, '_');
-  const date = new Date().toLocaleDateString('fr-FR');
+                    // *** ATTENTION: CES VALEURS DOIVENT ÊTRE VÉRIFIÉES CHEZ VOTRE COURTIER ! ***
+                    // Pour simplifier, nous allons supposer une valeur par point de 1$ pour 1.00 lot comme base pour le calculateur.
+                    // Cela signifie 0.01$ par point pour 0.01 lot.
+                    const valuePerPointForStandardLot = 1; // 1$ par point pour 1 lot (exemple pour certains indices comme le DE40 chez certains brokers)
+                    const actualValuePerPoint = lot * valuePerPointForStandardLot;
 
-  // En-tête
-  doc.setFillColor(29, 185, 84);
-  doc.rect(0, 0, 210, 25, 'F');
-  doc.setTextColor(255);
-  doc.setFontSize(16);
-  doc.text("PlamCard - Fiche Médicale", 105, 15, null, null, 'center');
+                    const slDistance = risk / actualValuePerPoint;
+                    const tpDistance = target / actualValuePerPoint;
+                    
+                    if (type === 'buy') {
+                        stopLossPrice = entry - slDistance;
+                        takeProfitPrice = entry + tpDistance;
+                    } else { // Sell
+                        stopLossPrice = entry + slDistance;
+                        takeProfitPrice = entry - tpDistance;
+                    }
+                    decimals = 2; // Les indices ont généralement 1 ou 2 décimales
 
-  // Bordure
-  doc.setDrawColor(100);
-  doc.rect(10, 30, 190, 240);
+                    // Un avertissement pour l'utilisateur
+                    if (lot === 0.01 && actualValuePerPoint === 0.01) {
+                         alert("Attention: Pour les Indices, la 'valeur par point' varie ÉNORMÉMENT selon l'indice et le courtier. Ce calculateur suppose 1$ par point pour 1 lot standard, ce qui signifie 0.01$ par point pour un lot de 0.01. Vérifiez IMPÉRATIVEMENT les spécifications de votre courtier pour l'indice tradé !");
+                    }
+                }
 
-  // Texte centré
-  doc.setTextColor(0);
-  doc.setFontSize(12);
-  let y = 45;
-  champs.forEach((label, i) => {
-    const ligne = `${label} : ${valeurs[i] || 'NC'}`;
-    doc.text(ligne, 105, y, null, null, 'center');
-    y += 10;
-  });
-
-  // Pied de page
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Généré le ${date}`, 105, 270, null, null, 'center');
-
-  dernierPDF = { doc, nom, date };
-  document.getElementById("downloadBtn").style.display = "block";
-  
-  }
-
-  function telechargerPDF() {
-    if (dernierPDF) {
-      const { doc, nom, date } = dernierPDF;
-      doc.save(`PlamCard_${nom}_${date}.pdf`);
-    }
-  }
-        </script>
+                // Met à jour l'affichage des résultats
+                lotResult.innerText = lot.toFixed(2);
+                stopLossResult.innerText = stopLossPrice.toFixed(decimals);
+                takeProfitResult.innerText = takeProfitPrice.toFixed(decimals);
+            });
+        });
+    </script>
 </body>
-  </html>
+</html>
